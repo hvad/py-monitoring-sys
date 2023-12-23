@@ -71,5 +71,5 @@ SMTPPassword = your_password
 ```
 
 ```
-main.py -c config.ini 
+$ python main.py -c config.ini 
 ```

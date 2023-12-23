@@ -9,7 +9,7 @@ import argparse
 import logging
 import daemon
 
-from core.config import settings
+from core.config import settings,validate_configuration
 from log.monitoring_log import setup_logging
 from checks.load.check_load import get_load_average
 from checks.memory.check_memory import get_memory_usage
@@ -52,6 +52,13 @@ async def sys_get_network_interface_state(interface_name):
         net = get_network_interface_state(interface_name)
         logging.info(f"Network : {net}")
 
+
+async def sys_get_ntp_sync(ntp_pool_server):
+    """ Get ntp state."""
+    if check_ntp_sync_enabled:
+        time_sync = check_ntp_sync(ntp_pool_server)
+        logging.info(f"Time sync : {time_sync}")
+
 async def run_checks():
     """ Run the checks asynchronously."""
     setup_logging(config['Settings']['logfile_name'],config['Settings']['logfile_days'])
@@ -61,24 +68,11 @@ async def run_checks():
             asyncio.create_task(sys_get_memory_usage(config['Memory']['warning'],config['Memory']['critical'])),
             asyncio.create_task(sys_get_disk_usage("/")),
             asyncio.create_task(sys_get_network_interface_state(config['Network']['name'])),
+            asyncio.create_task(sys_get_ntp_sync(config['NTP']['ntp_pool_server'])),
             asyncio.create_task(sys_get_disk_io())
         ]
         await asyncio.gather(*tasks)
         await asyncio.sleep(int(config['Settings']['check_period']))  # Add a small delay before running the checks again
-
-def validate_configuration(config):
-    required_sections = ["Settings", "Load"]
-    required_keys = {
-        "Settings": ["check_period", "logfile_name", "logfile_days"],
-        "Load": ["enable"]
-    }
-
-    for section in required_sections:
-        if section not in config:
-            raise ValueError(f"Missing required section: {section}")
-        for key in required_keys[section]:
-            if key not in config[section]:
-                raise ValueError(f"Missing required key: {key} in section: {section}")
 
 
 def main():
@@ -102,14 +96,15 @@ if __name__ == "__main__":
     # Validate the configuration before starting
     try:
         validate_configuration(config)
-    except ValueError as e:
-        print(f"Invalid configuration: {e}")
+    except ValueError as config_file_err:
+        print(f"Invalid configuration: {config_file_err}")
         exit(1)
 
     check_load_enabled = config.getboolean("Load","enable") 
     check_disk_enabled = config.getboolean("Disks","enable") 
     check_memory_enabled = config.getboolean("Memory","enable") 
     check_network_enabled = config.getboolean("Network","enable") 
+    check_ntp_sync_enabled = config.getboolean("NTP","enable") 
 
     if args.daemon:
         with daemon.DaemonContext(stderr=sys.stderr):
