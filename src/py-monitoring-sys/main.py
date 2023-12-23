@@ -15,49 +15,50 @@ from checks.load.check_load import get_load_average
 from checks.memory.check_memory import get_memory_usage
 from checks.disk.check_disk import get_disk_usage,get_disk_io
 from checks.network.check_network import get_network_interface_state
+from checks.ntp.check_ntp import check_ntp_sync
 
 
 async def sys_get_load_average():
     """ Get load average 1 minute, 5 minutes and 15 minutes."""
     if check_load_enabled:
         load = get_load_average()
-        logging.info(f"Load : {load}")
+        logging.info("Load average : %s", load)
 
 async def sys_get_memory_usage(warning,critical):
     """ Get memory percent usage."""
     if check_memory_enabled:
         memory = get_memory_usage()
         if  memory >= int(critical):
-            logging.info(f"CRITICAL - Memory percentage usage : {memory}%")
+            logging.info(f"CRITICAL - Memory percentage usage : %s %%", memory)
         elif memory >= int(warning):
-            logging.info(f"WARNING - Memory percentage usage : {memory}%")
+            logging.info(f"WARNING - Memory percentage usage : %s %%", memory)
         else:
-            logging.info(f"OK - Memory percentage usage : {memory}%")
+            logging.info(f"OK - Memory percentage usage : %s %%", memory)
 
 async def sys_get_disk_usage(partition):
     """ Get disk usage."""
     if check_disk_enabled:
         disk_usage_all = get_disk_usage(partition)
-        logging.info(f"Disk Usage : {disk_usage_all}")
+        logging.info("Disk Usage : %s", disk_usage_all)
 
 async def sys_get_disk_io():
     """ Get disk I/O."""
     if check_disk_enabled:
         disk_io = get_disk_io()
-        logging.info(f"Disk I/O Bytes : {disk_io}")
+        logging.info("Disk I/O Bytes : %s", disk_io)
 
 async def sys_get_network_interface_state(interface_name):
     """ Get network state."""
     if check_network_enabled:
         net = get_network_interface_state(interface_name)
-        logging.info(f"Network : {net}")
+        logging.info("Network : %s", net)
 
 
 async def sys_get_ntp_sync(ntp_pool_server):
     """ Get ntp state."""
     if check_ntp_sync_enabled:
         time_sync = check_ntp_sync(ntp_pool_server)
-        logging.info(f"Time sync : {time_sync}")
+        logging.info("Time sync : %s", time_sync)
 
 async def run_checks():
     """ Run the checks asynchronously."""
@@ -98,13 +99,13 @@ if __name__ == "__main__":
         validate_configuration(config)
     except ValueError as config_file_err:
         print(f"Invalid configuration: {config_file_err}")
-        exit(1)
+        sys.exit(1)
 
-    check_load_enabled = config.getboolean("Load","enable") 
-    check_disk_enabled = config.getboolean("Disks","enable") 
-    check_memory_enabled = config.getboolean("Memory","enable") 
-    check_network_enabled = config.getboolean("Network","enable") 
-    check_ntp_sync_enabled = config.getboolean("NTP","enable") 
+    check_load_enabled = config.getboolean("Load","enable")
+    check_disk_enabled = config.getboolean("Disks","enable")
+    check_memory_enabled = config.getboolean("Memory","enable")
+    check_network_enabled = config.getboolean("Network","enable")
+    check_ntp_sync_enabled = config.getboolean("NTP","enable")
 
     if args.daemon:
         with daemon.DaemonContext(stderr=sys.stderr):
