@@ -18,10 +18,16 @@ class Settings:
 settings = Settings()
 
 def validate_configuration(config):
+    """ Validate configuration file."""
     required_sections = ["Settings", "Load"]
     required_keys = {
-        "Settings": ["check_period", "enable_log", "logfile_name", "logfile_days"],
-        "Load": ["enable"]
+        "Settings": ["check_period", "enable_log", "logfile_name"],
+        "Load": ["enable"],
+        "Disks": ["enable", "warning","critical"],
+        "Memory": ["enable", "warning","critical"],
+        "Network": ["enable", "name"],
+        "NTP": ["enable", "ntp_pool_server"],
+        "Email": ["Sender", "Receiver", "SMTPServer", "SMTPPort", "SMTPUsername", "SMTPPassword"]
     }
 
     for section in required_sections:
