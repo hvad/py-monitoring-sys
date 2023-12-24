@@ -58,11 +58,11 @@ async def sys_get_disk_usage(disks):
         for disk in list_disks:
             disk_usage= get_disk_usage(disk)
             if int(disk_usage[3]) >= int(config['Disks']['critical']):
-               result=f"CRITICAL"
+                result=f"CRITICAL"
             elif int(disk_usage[3]) >= int(config['Disks']['warning']):
-               result=f"WARNING"
+                result=f"WARNING"
             else:
-               result=f"OK"
+                result=f"OK"
             if settings_log_enabled:
                 message=f"{result} - {disk} Disk percent usage {disk_usage[3]}% Total disk {disk_usage[0]} Used disk {disk_usage[1]}"
                 log_message(config['Settings']['logfile_name'],message)
