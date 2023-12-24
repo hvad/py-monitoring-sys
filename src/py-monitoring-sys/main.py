@@ -6,7 +6,6 @@ import asyncio
 import sys
 import configparser
 import argparse
-import logging
 import daemon
 
 from core.config import settings,validate_configuration
@@ -23,8 +22,19 @@ async def sys_get_load_average():
     """ Get load average 1 minute, 5 minutes and 15 minutes."""
     if check_load_enabled:
         load = get_load_average()
+        if (load[0] >= float(config['Load']['critical_load1']) or
+            load[1]>= float(config['Load']['critical_load5']) or
+            load[2]>= float(config['Load']['critical_load15'])): 
+            result=f"CRITICAL"
+        elif (load[0] >= float(config['Load']['warning_load1']) or
+             load[1]>= float(config['Load']['warning_load5']) or
+             load[2]>= float(config['Load']['warning_load15'])):
+            result=f"WARNING"
+        else:
+            result=f"OK"
+
         if settings_log_enabled:
-            message=f"Load average :{load}"
+            message=f"{result} - Load average : {load[0]} {load[1]} {load[2]}"
             log_message(config['Settings']['logfile_name'],message)
 
 async def sys_get_memory_usage(warning,critical):
@@ -68,7 +78,7 @@ async def sys_get_ntp_sync(ntp_pool_server):
     """ Get ntp state."""
     if check_ntp_sync_enabled:
         time_sync = check_ntp_sync(ntp_pool_server)
-        if time_sync == True:
+        if time_sync is True:
             result="OK"
         else:
             result="CRITICAL"
@@ -141,4 +151,3 @@ if __name__ == "__main__":
     else:
         print(f"{settings.PROJECT_NAME} {settings.PROJECT_VERSION} Started...")
         main()
-
