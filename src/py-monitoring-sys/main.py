@@ -42,12 +42,13 @@ async def sys_get_memory_usage(warning,critical):
     if check_memory_enabled:
         memory = get_memory_usage()
         if  memory >= int(critical):
-            message=f"CRITICAL - Memory percentage usage : {memory}%"
+            result=f"CRITICAL"
         elif memory >= int(warning):
-            message=f"WARNING - Memory percentage usage : {memory}%"
+            result=f"WARNING"
         else:
-            message=f"OK - Memory percentage usage : {memory}%"
+            result=f"OK"
         if settings_log_enabled:
+            message=f"{result} - Memory percentage usage : {memory}%"
             log_message(config['Settings']['logfile_name'],message)
 
 async def sys_get_disk_usage(partition):
@@ -70,8 +71,12 @@ async def sys_get_network_interface_state(interface_name):
     """ Get network state."""
     if check_network_enabled:
         net = get_network_interface_state(interface_name)
+        if net is True:
+            result=f"UP"
+        else:
+            result=f"DOWN"
         if settings_log_enabled:
-            message=f"Network : {net}"
+            message=f"Network : {interface_name} is {result}"
             log_message(config['Settings']['logfile_name'],message)
 
 async def sys_get_ntp_sync(ntp_pool_server):
@@ -93,7 +98,8 @@ async def run_checks():
             asyncio.create_task(sys_get_load_average()),
             asyncio.create_task(sys_get_memory_usage(config['Memory']['warning'],config['Memory']['critical'])),
             asyncio.create_task(sys_get_disk_usage("/")),
-            asyncio.create_task(sys_get_network_interface_state(config['Network']['name'])),
+            asyncio.create_task(sys_get_network_interface_state('en0')),
+#            asyncio.create_task(sys_get_network_interface_state(config['Network']['name'])),
             asyncio.create_task(sys_get_ntp_sync(config['NTP']['ntp_pool_server'])),
             asyncio.create_task(sys_get_disk_io())
         ]
