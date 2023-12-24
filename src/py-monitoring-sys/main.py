@@ -52,14 +52,19 @@ async def sys_get_memory_usage(warning,critical):
             log_message(config['Settings']['logfile_name'],message)
 
 async def sys_get_disk_usage(disks):
-    """ Get disk usage."""
+    """ Get disks usage."""
     if check_disk_enabled:
         list_disks = disks.get('disks', '').split(',')
         for disk in list_disks:
             disk_usage= get_disk_usage(disk)
-
+            if int(disk_usage[3]) >= int(config['Disks']['critical']):
+               result=f"CRITICAL"
+            elif int(disk_usage[3]) >= int(config['Disks']['warning']):
+               result=f"WARNING"
+            else:
+               result=f"OK"
             if settings_log_enabled:
-                message=f"Disk Usage : {disk} {disk_usage}"
+                message=f"{result} - {disk} Disk percent usage {disk_usage[3]}% Total disk {disk_usage[0]} Used disk {disk_usage[1]}"
                 log_message(config['Settings']['logfile_name'],message)
 
 async def sys_get_disk_io():
