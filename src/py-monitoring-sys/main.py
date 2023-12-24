@@ -51,17 +51,20 @@ async def sys_get_memory_usage(warning,critical):
             message=f"{result} - Memory percentage usage : {memory}%"
             log_message(config['Settings']['logfile_name'],message)
 
-async def sys_get_disk_usage(partition):
+async def sys_get_disk_usage(disks):
     """ Get disk usage."""
     if check_disk_enabled:
-        disk_usage_all = get_disk_usage(partition)
-        if settings_log_enabled:
-            message=f"Disk Usage : {disk_usage_all}"
-            log_message(config['Settings']['logfile_name'],message)
+        list_disks = disks.get('disks', '').split(',')
+        for disk in list_disks:
+            disk_usage= get_disk_usage(disk)
+
+            if settings_log_enabled:
+                message=f"Disk Usage : {disk} {disk_usage}"
+                log_message(config['Settings']['logfile_name'],message)
 
 async def sys_get_disk_io():
     """ Get disk I/O."""
-    if check_disk_enabled:
+    if check_disk_io_enabled and check_disk_enabled:
         disk_io = get_disk_io()
         if settings_log_enabled:
             message=f"Disk I/O Bytes : {disk_io}"
@@ -97,9 +100,8 @@ async def run_checks():
         tasks = [
             asyncio.create_task(sys_get_load_average()),
             asyncio.create_task(sys_get_memory_usage(config['Memory']['warning'],config['Memory']['critical'])),
-            asyncio.create_task(sys_get_disk_usage("/")),
-            asyncio.create_task(sys_get_network_interface_state('en0')),
-#            asyncio.create_task(sys_get_network_interface_state(config['Network']['name'])),
+            asyncio.create_task(sys_get_disk_usage(config['Disks'])),
+            asyncio.create_task(sys_get_network_interface_state(config['Network']['name'])),
             asyncio.create_task(sys_get_ntp_sync(config['NTP']['ntp_pool_server'])),
             asyncio.create_task(sys_get_disk_io())
         ]
@@ -138,6 +140,7 @@ if __name__ == "__main__":
     settings_log_enabled = config.getboolean("Settings","enable_log")
     check_load_enabled = config.getboolean("Load","enable")
     check_disk_enabled = config.getboolean("Disks","enable")
+    check_disk_io_enabled = config.getboolean("Disks","io_disk")
     check_memory_enabled = config.getboolean("Memory","enable")
     check_network_enabled = config.getboolean("Network","enable")
     check_ntp_sync_enabled = config.getboolean("NTP","enable")
