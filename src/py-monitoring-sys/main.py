@@ -10,6 +10,8 @@ import daemon
 
 from core.config import settings,validate_configuration
 from log.monitoring_log import log_message
+from alert.smtp import send_email_alert
+from alert.alert import AlertSender
 from checks.load.check_load import get_load_average
 from checks.memory.check_memory import get_memory_usage
 from checks.disk.check_disk import get_disk_usage,get_disk_io
@@ -32,10 +34,15 @@ async def sys_get_load_average():
             result=f"WARNING"
         else:
             result=f"OK"
-
         if settings_log_enabled:
             message=f"{result} - Load average : {load[0]} {load[1]} {load[2]}"
             log_message(config['Settings']['logfile_name'],message)
+        if settings_alert_enabled:
+            if result == "CRITICAL" or result == "WARNING":
+                subject=f"Load average alert {result}"  
+                message=f"{result} - Load average alert : {load[0]} {load[1]} {load[2]}.\n"
+                alert_sender = AlertSender(send_email_alert)    
+                alert_sender.send_alert(subject ,message)
 
 async def sys_get_memory_usage(warning,critical):
     """ Get memory percent usage."""
@@ -50,6 +57,12 @@ async def sys_get_memory_usage(warning,critical):
         if settings_log_enabled:
             message=f"{result} - Memory percentage usage : {memory}%"
             log_message(config['Settings']['logfile_name'],message)
+        if settings_alert_enabled:
+            if result == "CRITICAL" or result == "WARNING":
+                subject=f"Memory alert {result}"  
+                message=f"{result} - Memory percentage usage : {memory}%.\n"
+                alert_sender = AlertSender(send_email_alert)    
+                alert_sender.send_alert(subject ,message)
 
 async def sys_get_disk_usage(disks):
     """ Get disks usage."""
@@ -66,13 +79,19 @@ async def sys_get_disk_usage(disks):
             if settings_log_enabled:
                 message=f"{result} - {disk} Disk percent usage {disk_usage[3]}% Total disk {disk_usage[0]} Used disk {disk_usage[1]}"
                 log_message(config['Settings']['logfile_name'],message)
+            if settings_alert_enabled:
+                if result == "CRITICAL" or result == "WARNING":
+                    subject=f"Disk {disk} alert {result}"  
+                    message=f"{result} - {disk} Disk percent usage {disk_usage[3]}% Total disk {disk_usage[0]} Used disk {disk_usage[1]}.\n"
+                    alert_sender = AlertSender(send_email_alert)    
+                    alert_sender.send_alert(subject ,message)
 
 async def sys_get_disk_io():
     """ Get disk I/O."""
     if check_disk_io_enabled and check_disk_enabled:
         disk_io = get_disk_io()
         if settings_log_enabled:
-            message=f"Disk I/O Bytes : {disk_io}"
+            message=f"All disk I/O Bytes : {disk_io}"
             log_message(config['Settings']['logfile_name'],message)
 
 async def sys_get_network_interface_state(interface_name):
@@ -98,6 +117,11 @@ async def sys_get_ntp_sync(ntp_pool_server):
         if settings_log_enabled:
             message=f"Time synchonisation is {result}"
             log_message(config['Settings']['logfile_name'],message)
+        if result == "CRITICAL":
+            subject=f"Time synchonisation alert"  
+            message=f"Time synchonisation is {result}\n"
+            alert_sender = AlertSender(send_email_alert)    
+            alert_sender.send_alert(subject ,message)
 
 async def run_checks():
     """ Run the checks asynchronously."""
@@ -135,14 +159,16 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE)
 
-    # Validate the configuration before starting
+    """ Validate the configuration before starting."""
     try:
         validate_configuration(config)
     except ValueError as config_file_err:
         print(f"Invalid configuration: {config_file_err}")
         sys.exit(1)
 
+  
     settings_log_enabled = config.getboolean("Settings","enable_log")
+    settings_alert_enabled = config.getboolean("Settings","enable_alert")
     check_load_enabled = config.getboolean("Load","enable")
     check_disk_enabled = config.getboolean("Disks","enable")
     check_disk_io_enabled = config.getboolean("Disks","io_disk")
@@ -151,7 +177,7 @@ if __name__ == "__main__":
     check_ntp_sync_enabled = config.getboolean("NTP","enable")
 
     if args.daemon:
-        with daemon.DaemonContext():
+        with daemon.DaemonContext(stdout=sys.stdout,stderr=sys.stderr):
             print(f"{settings.PROJECT_NAME} {settings.PROJECT_VERSION} Started...")
             main()
 

@@ -32,3 +32,6 @@ async def send_email_alert(subject, message):
         await server.send_message(msg)
     finally:
         server.quit()
+
+def test_send_email_alert(subject, message):
+    print(f"Subject : {subject} Message : {message}")
