@@ -5,7 +5,7 @@
 def get_chrony_ntp_pool_servers():
     """ Get ntp pool server configuration."""
     servers = []
-    with open('/etc/chrony.conf', 'r') as file:
+    with open("/etc/chrony.conf", "r", encoding="utf-8") as file:
         lines = file.readlines()
 
         for line in lines:

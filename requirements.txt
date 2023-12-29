@@ -1,5 +1,4 @@
 psutil 
-PyYAML
 python-dotenv
 python-daemon
 ntplib

@@ -4,6 +4,7 @@
 import ntplib
 
 def check_ntp_sync(ntp_server_pool):
+    """ Check NTP synchronized with NTP servers pool."""
     try:
         # Connect to the NTP server
         ntp_client = ntplib.NTPClient()

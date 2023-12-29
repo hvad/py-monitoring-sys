@@ -26,7 +26,7 @@ async def sys_get_load_average():
         load = get_load_average()
         if (load[0] >= float(config['Load']['critical_load1']) or
             load[1]>= float(config['Load']['critical_load5']) or
-            load[2]>= float(config['Load']['critical_load15'])): 
+            load[2]>= float(config['Load']['critical_load15'])):
             result=f"CRITICAL"
         elif (load[0] >= float(config['Load']['warning_load1']) or
              load[1]>= float(config['Load']['warning_load5']) or
@@ -39,9 +39,9 @@ async def sys_get_load_average():
             log_message(config['Settings']['logfile_name'],message)
         if settings_alert_enabled:
             if result == "CRITICAL" or result == "WARNING":
-                subject=f"Load average alert {result}"  
+                subject=f"Load average alert {result}"
                 message=f"{result} - Load average alert : {load[0]} {load[1]} {load[2]}.\n"
-                alert_sender = AlertSender(send_email_alert)    
+                alert_sender = AlertSender(send_email_alert)
                 alert_sender.send_alert(subject ,message)
 
 async def sys_get_memory_usage(warning,critical):
@@ -59,9 +59,9 @@ async def sys_get_memory_usage(warning,critical):
             log_message(config['Settings']['logfile_name'],message)
         if settings_alert_enabled:
             if result == "CRITICAL" or result == "WARNING":
-                subject=f"Memory alert {result}"  
+                subject=f"Memory alert {result}"
                 message=f"{result} - Memory percentage usage : {memory}%.\n"
-                alert_sender = AlertSender(send_email_alert)    
+                alert_sender = AlertSender(send_email_alert)
                 alert_sender.send_alert(subject ,message)
 
 async def sys_get_disk_usage(disks):
@@ -81,7 +81,7 @@ async def sys_get_disk_usage(disks):
                 log_message(config['Settings']['logfile_name'],message)
             if settings_alert_enabled:
                 if result == "CRITICAL" or result == "WARNING":
-                    subject=f"Disk {disk} alert {result}"  
+                    subject=f"Disk {disk} alert {result}"
                     message=f"{result} - {disk} Disk percent usage {disk_usage[3]}% Total disk {disk_usage[0]} Used disk {disk_usage[1]}.\n"
                     alert_sender = AlertSender(send_email_alert)    
                     alert_sender.send_alert(subject ,message)
@@ -118,9 +118,9 @@ async def sys_get_ntp_sync(ntp_pool_server):
             message=f"Time synchonisation is {result}"
             log_message(config['Settings']['logfile_name'],message)
         if result == "CRITICAL":
-            subject=f"Time synchonisation alert"  
+            subject=f"Time synchonisation alert"
             message=f"Time synchonisation is {result}\n"
-            alert_sender = AlertSender(send_email_alert)    
+            alert_sender = AlertSender(send_email_alert)
             alert_sender.send_alert(subject ,message)
 
 async def run_checks():
@@ -135,7 +135,7 @@ async def run_checks():
             asyncio.create_task(sys_get_disk_io())
         ]
         await asyncio.gather(*tasks)
-        await asyncio.sleep(int(config['Settings']['check_period']))  # Add a small delay before running the checks again
+        await asyncio.sleep(int(config['Settings']['check_period']))
 
 def main():
     """ Main function to continuously run the checks."""
@@ -166,7 +166,6 @@ if __name__ == "__main__":
         print(f"Invalid configuration: {config_file_err}")
         sys.exit(1)
 
-  
     settings_log_enabled = config.getboolean("Settings","enable_log")
     settings_alert_enabled = config.getboolean("Settings","enable_alert")
     check_load_enabled = config.getboolean("Load","enable")

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import psutil
 import time
+import psutil
 from core.main import bytes2human
 
 def get_disk_usage(disk):
+    """ Get disk usage for a disk."""
     disk_usage = psutil.disk_usage(disk)
     disk_usage_total = bytes2human(disk_usage.total)
     disk_usage_used = bytes2human(disk_usage.used)
@@ -14,6 +15,7 @@ def get_disk_usage(disk):
     return disk_usage_total,disk_usage_used,disk_usage_free,disk_usage_percent
 
 def get_disk_io():
+    """ Get disks I/O."""
     disk_io = psutil.disk_io_counters()
     read_bytes = disk_io.read_bytes
     write_bytes = disk_io.write_bytes
