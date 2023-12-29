@@ -25,15 +25,20 @@ Stats disk I/O
 
 Stats network I/O
 
-Log
+Log checks and stats in file.
 
-Alert 
+Alert when thresolds 
 
-Discovery disks
+Discovery disks and ntp configuration.
 
 
 ## How to install
 
+Git clone repository
+
+Create a python 3 virtual environnment
+
+Install python 3 requirements
 
 ## How to configure
 
@@ -41,25 +46,38 @@ Configuration file example :
 ```
 [Settings]
 check_period=60
+enable_log=True
+enable_alert=True
 logfile_name=std.log
-logfile_days=7
 
 [Load]
 enable=True
+warning_load1=2
+critical_load1=4
+warning_load5=4
+critical_load5=6
+warning_load15=6
+critical_load15=8
 
 [Disks]
 enable=True
-warning=80
-critical=90
+io_disk=True
+warning=85
+critical=95
+disks=/,/var
 
 [Memory]
-warning=90
 enable=True
+warning=90
 critical=98
 
 [Network]
 enable=True
-name="lo"
+name=en0
+
+[NTP]
+enable=True
+ntp_pool_server=3.pool.ntp.org
 
 [Email]
 Sender = your_email@example.com
@@ -70,6 +88,9 @@ SMTPUsername = your_username
 SMTPPassword = your_password
 ```
 
+Execute command below for daemon mode : 
 ```
-$ python main.py -c config.ini 
+$ python main.py -c config.ini -d
 ```
+
+Execute command below for console mode : 
